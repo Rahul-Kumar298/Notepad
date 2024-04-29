@@ -7,7 +7,7 @@ import os
 from tkinter import simpledialog
 
 file = None
-
+last_search = ""
 def new():
     global file
     root.title("Untitled - Notepad")
@@ -35,40 +35,52 @@ def newwindow():
     # File menu
     new_file_menu = Menu(new_menu, tearoff=0)
     new_file_menu.add_command(label="New", command=new, accelerator="Ctrl+N")
-    new_file_menu.add_command(label="Newwindow", command=newwindow, accelerator="Ctrl+shift+N")
+    new_file_menu.add_command(label="New Window", command=newwindow, accelerator="Ctrl+shift+N")
     new_file_menu.add_command(label="Open", command=open1, accelerator="Ctrl+O")
     new_file_menu.add_command(label="Save", command=save, accelerator="Ctrl+S")
     new_file_menu.add_command(label="Save As", command=saveas, accelerator="Ctrl+Shift+S")
     new_file_menu.add_separator()
-    new_file_menu.add_command(label="Exit", command=new_window.destroy, accelerator="Alt+F4")
+    new_file_menu.add_command(label="Page setup", command=pagesetup)
+    new_file_menu.add_command(label="Print", command=print, accelerator="Ctrl+P")
+    new_file_menu.add_separator()
+    new_file_menu.add_command(label="Exit", command=new_window.destroy)
     new_menu.add_cascade(label="File", menu=new_file_menu)
 
     # Edit menu
     new_edit_menu = Menu(new_menu, tearoff=0)
     new_edit_menu.add_command(label="Undo", command=undo, accelerator="Ctrl+Z")
+    new_edit_menu.add_separator()
     new_edit_menu.add_command(label="Cut", command=cut, accelerator="Ctrl+X")
     new_edit_menu.add_command(label="Copy", command=copy, accelerator="Ctrl+C")
     new_edit_menu.add_command(label="Paste", command=paste, accelerator="Ctrl+V")
     new_edit_menu.add_command(label="Delete", command=delete, accelerator="Del")
     new_edit_menu.add_separator()
+    new_edit_menu.add_command(label="Search with Google...", command=search_google, accelerator="Ctrl+E")
+    new_edit_menu.add_command(label="Find", command=find_text, accelerator="Ctrl+F")
+    new_edit_menu.add_command(label="Find Next", command=find_next, accelerator="F3")
+    new_edit_menu.add_command(label="Find Previous", command=find_previous, accelerator="Shift+F3")
+    new_edit_menu.add_command(label="Replace", command=replace, accelerator="Ctrl+H")
+    new_edit_menu.add_command(label="Go To", command=goto, accelerator="Ctrl+G")
+    new_edit_menu.add_separator()
     new_edit_menu.add_command(label="Select All", command=selectall, accelerator="Ctrl+A")
+    # new_edit_menu.add_command(label="Time/Date", command=td, accelerator="F5")
     new_menu.add_cascade(label="Edit", menu=new_edit_menu)
 
-    # Format menu
-    new_format_menu = Menu(new_menu, tearoff=0)
-    new_format_menu.add_command(label="Word Wrap", command=ww)
-    new_format_menu.add_command(label="Font", command=font)
-    new_menu.add_cascade(label="Format", menu=new_format_menu)
+    # # Format menu
+    # new_format_menu = Menu(new_menu, tearoff=0)
+    # new_format_menu.add_command(label="Word Wrap", command=ww)
+    # new_format_menu.add_command(label="Font", command=font)
+    # new_menu.add_cascade(label="Format", menu=new_format_menu)
 
-    # View menu
-    new_view_menu = Menu(new_menu, tearoff=0)
-    new_zoom_menu = Menu(new_view_menu, tearoff=0)
-    new_zoom_menu.add_command(label="Zoom In", command=zoomin, accelerator="Ctrl++")
-    new_zoom_menu.add_command(label="Zoom Out", command=zoomout, accelerator="Ctrl+-")
-    new_zoom_menu.add_command(label="Restore Default Zoom", command=rdzoom, accelerator="Ctrl+0")
-    new_view_menu.add_cascade(label="Zoom", menu=new_zoom_menu)
-    new_view_menu.add_command(label="Status Bar", command=statusbar)
-    new_menu.add_cascade(label="View", menu=new_view_menu)
+    # # View menu
+    # new_view_menu = Menu(new_menu, tearoff=0)
+    # new_zoom_menu = Menu(new_view_menu, tearoff=0)
+    # new_zoom_menu.add_command(label="Zoom In", command=zoomin, accelerator="Ctrl++")
+    # new_zoom_menu.add_command(label="Zoom Out", command=zoomout, accelerator="Ctrl+-")
+    # new_zoom_menu.add_command(label="Restore Default Zoom", command=rdzoom, accelerator="Ctrl+0")
+    # new_view_menu.add_cascade(label="Zoom", menu=new_zoom_menu)
+    # new_view_menu.add_command(label="Status Bar", command=statusbar)
+    # new_menu.add_cascade(label="View", menu=new_view_menu)
 
     # Help menu
     new_help_menu = Menu(new_menu, tearoff=0)
@@ -80,6 +92,7 @@ def newwindow():
 
     # Set initial window size
     new_window.geometry('500x400')
+    new_window.iconbitmap('1.ico')
 
 def open1():
     global file
@@ -288,13 +301,20 @@ def paste():
     TextArea.event_generate("<Control-v>")
 
 def delete():
-    TextArea.delete(SEL_FIRST, SEL_LAST)
+    # Check if any text is selected
+    if TextArea.tag_ranges("sel"):
+        # If text is selected, delete it
+        TextArea.delete("sel.first", "sel.last")
 
 
-def search_google(selected_text):
+def search_google(selected_text=None):
     import webbrowser
-    search_query = 'https://www.google.com/search?q=' + '+'.join(selected_text.split())
-    webbrowser.open_new_tab(search_query)
+    if selected_text:
+        search_query = 'https://www.google.com/search?q=' + '+'.join(selected_text.split())
+        webbrowser.open_new_tab(search_query)
+    else:
+        # If no text is selected, display a message
+        messagebox.showinfo("Search Google", "Please select text to search on Google.")
 
 
 def find_text():
@@ -447,21 +467,6 @@ def selectall():
     return 'break'
 
 
-def td():
-    pass
-def ww():
-    pass
-def font():
-    pass
-def zoomin():
-    pass
-def zoomout():
-    pass
-def rdzoom():
-    pass
-def statusbar():
-    pass
-
 
 def viewhelp():
     import webbrowser
@@ -480,7 +485,7 @@ def sendfb():
     # Create a label and entry field for feedback
     feedback_label = tk.Label(root, text="Please provide your feedback:")
     feedback_label.pack()
-    feedback_entry = tk.Entry(root, width=50)
+    feedback_entry = tk.Entry(root, width=50, height=50)
     feedback_entry.pack()
 
     # Create a button to submit feedback
@@ -488,7 +493,8 @@ def sendfb():
     submit_button.pack()
 
 def about():
-    messagebox.showinfo("Notepad - Made by Rahul", "This notepad is made in python and this is a clone of Microsoft Notepad.")
+    messagebox.showinfo("Notepad - Made by Rahul", "My Notepad is a simple yet powerful text editor built using the Tkinter library in Python. It provides users with a familiar interface similar to the classic Notepad application found in Microsoft Windows. With its clean and intuitive design, My Notepad offers essential features for creating, editing, and saving text documents efficiently.")
+
 # notepad
 root = Tk()
 root.geometry('500x400')
@@ -529,29 +535,44 @@ editmenu.add_command(label="Replace", command=replace, accelerator="Ctrl+H")
 editmenu.add_command(label="Go To", command=goto, accelerator="Ctrl+G")
 editmenu.add_separator()
 editmenu.add_command(label="Select All", command=selectall, accelerator="Ctrl+A")
-editmenu.add_command(label="Time/Date", command=td, accelerator="F5")
+# editmenu.add_command(label="Time/Date", command=td, accelerator="F5")
 root.config(menu=mymenu)
 mymenu.add_cascade(label="Edit", menu=editmenu)
+# Bind accelerators to menu items
+root.bind_all("<Control-n>", lambda event: new())
+root.bind_all("<Control-N>", lambda event: newwindow())
+root.bind_all("<Control-o>", lambda event: open1())
+root.bind_all("<Control-s>", lambda event: save())
+root.bind_all("<Control-S>", lambda event: saveas())
+root.bind_all("<Control-p>", lambda event: print())
+root.bind_all("<Control-z>", lambda event: undo())
+root.bind_all("<BackSpace>", lambda event: delete())
+root.bind_all("<Control-e>", lambda event: search_google(TextArea.selection_get()))
+root.bind_all("<Control-f>", lambda event: find_text())
+root.bind_all("<F3>", lambda event: find_next())
+root.bind_all("<Shift-F3>", lambda event: find_previous())
+root.bind_all("<Control-h>", lambda event: replace())
+root.bind_all("<Control-g>", lambda event: goto())
+root.bind_all("<Control-a>", lambda event: selectall())
+# # creating Format Menu
+# formatmenu = Menu(mymenu,tearoff=0)
+# formatmenu.add_command(label="Word Wrap", command=ww)
+# formatmenu.add_command(label="Font", command=font)
+# root.config(menu=mymenu)
+# mymenu.add_cascade(label="Format", menu=formatmenu)
 
-# creating Format Menu
-formatmenu = Menu(mymenu,tearoff=0)
-formatmenu.add_command(label="Word Wrap", command=ww)
-formatmenu.add_command(label="Font", command=font)
-root.config(menu=mymenu)
-mymenu.add_cascade(label="Format", menu=formatmenu)
-
-# creting view menu
-viewmenu = Menu(mymenu,tearoff=0)
-# creating zoom menu
-zoommenu = Menu(viewmenu,tearoff=0)
-zoommenu.add_command(label="Zoom In", command=zoomin)
-zoommenu.add_command(label="Zoom Out", command=zoomout)
-zoommenu.add_command(label="Restore Default Zoom", command=rdzoom)
-root.config(menu=mymenu)
-viewmenu.add_cascade(label="Zoom",menu=zoommenu)
-viewmenu.add_command(label="Status Bar", command=statusbar)
-root.config(menu=mymenu)
-mymenu.add_cascade(label="View", menu=viewmenu)
+# # creting view menu
+# viewmenu = Menu(mymenu,tearoff=0)
+# # creating zoom menu
+# # zoommenu = Menu(viewmenu,tearoff=0)
+# # zoommenu.add_command(label="Zoom In", command=zoomin)
+# # zoommenu.add_command(label="Zoom Out", command=zoomout)
+# # zoommenu.add_command(label="Restore Default Zoom", command=rdzoom)
+# # root.config(menu=mymenu)
+# # viewmenu.add_cascade(label="Zoom",menu=zoommenu)
+# # viewmenu.add_command(label="Status Bar", command=statusbar)
+# root.config(menu=mymenu)
+# mymenu.add_cascade(label="View", menu=viewmenu)
 
 # creating Help Menu
 helpmenu = Menu(mymenu,tearoff=0)
@@ -567,4 +588,13 @@ scrollbar.pack(side=RIGHT, fill=Y)
 TextArea = Text(root, yscrollcommand=scrollbar.set)
 TextArea.pack(fill=BOTH, expand=True)
 scrollbar.config(command=TextArea.yview)
+#  # Create status bar
+# status_bar = tk.Label(root, text="Ln 1, Col 1", bd=1, relief=tk.SUNKEN, anchor=tk.W)
+# status_bar.pack(side=tk.BOTTOM, fill=tk.X)
+
+# # Function to update status bar
+# def update_status_bar(event=None):
+#     cursor_pos = TextArea.index(tk.INSERT)
+#     line, col = cursor_pos.split('.')
+#     status_bar.config(text=f"Ln {line}, Col {col}")
 root.mainloop()
