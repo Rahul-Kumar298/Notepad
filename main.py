@@ -461,6 +461,8 @@ def selectall():
     TextArea.see(INSERT)
     return 'break'
 
+def myquit():
+    root.destroy()
 
 
 def viewhelp():
@@ -499,7 +501,7 @@ root.geometry('500x400')
 root.title("Untitled - Notepad")
 root.minsize('240','240')
 root.maxsize('720', '620')
-root.wm_iconbitmap("1.ico")
+root.wm_iconbitmap(r"1.ico")
 mymenu = Menu(root)
 # creating filemenu
 filemenu = Menu(mymenu,tearoff=0)
@@ -512,7 +514,7 @@ filemenu.add_separator()
 filemenu.add_command(label="Page Setup", command=pagesetup)
 filemenu.add_command(label="Print", command=print, accelerator="Ctrl+P")
 filemenu.add_separator()
-filemenu.add_command(label="Exit", command=quit)
+filemenu.add_command(label="Exit", command=myquit)
 root.config(menu=mymenu)
 mymenu.add_cascade(label="File", menu=filemenu)
 
