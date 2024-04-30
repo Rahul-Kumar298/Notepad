@@ -291,6 +291,7 @@ def pagesetup():
 
 def undo():
     TextArea.edit_undo()
+
 def cut():
     TextArea.event_generate("<Control-x>")
 
@@ -350,6 +351,7 @@ def find_text():
     find_button.grid(row=0, column=2, padx=5, pady=5)
 
 
+
 def find_next():
     global last_search
     # Get the search string from the user
@@ -357,7 +359,7 @@ def find_next():
     
     if search_str:
         # Search for the text from the current cursor position onwards
-        start_pos = TextArea.search(search_str, INSERT, stopindex=END)
+        start_pos = TextArea.search(search_str, INSERT, stopindex=END, nocase=1, forwards=True)
         if start_pos:
             end_pos = f"{start_pos}+{len(search_str)}c"
             # Highlight the found text
@@ -369,33 +371,24 @@ def find_next():
         else:
             messagebox.showinfo("Notepad", f"Cannot find '{search_str}'")
 
-
 def find_previous():
-    # Get the search string from a dialog box
-    search_string = simpledialog.askstring("Find Previous", "Enter text to find:")
+    global last_search
+    # Get the search string from the user
+    search_str = simpledialog.askstring("Find Previous", "Find what:", initialvalue=last_search)
     
-    # If the search string is not empty
-    if search_string:
-        # Get the current text content
-        content = TextArea.get("1.0", "end-1c")
-        
-        # Find the position of the last occurrence of the search string before the current cursor position
-        start_position = content.rfind(search_string, 0, TextArea.index("insert"))
-        
-        # If a match is found
-        if start_position != -1:
-            # Calculate end position
-            end_position = f"{start_position}+{len(search_string)}c"
+    if search_str:
+        # Search for the text from the current cursor position onwards
+        start_pos = TextArea.search(search_str, INSERT, stopindex="1.0", nocase=1, backwards=True)
+        if start_pos:
+            end_pos = f"{start_pos}+{len(search_str)}c"
             # Highlight the found text
-            TextArea.tag_remove("found", "1.0", "end")
-            TextArea.tag_add("found", f"{start_position}", end_position)
-            TextArea.tag_config("found", background="yellow")
-            # Set cursor to the start of the found text
-            TextArea.mark_set("insert", start_position)
-            TextArea.see("insert")
+            TextArea.tag_remove(SEL, "1.0", END)
+            TextArea.tag_add(SEL, start_pos, end_pos)
+            TextArea.mark_set(INSERT, start_pos)
+            TextArea.see(INSERT)
+            last_search = search_str
         else:
-            messagebox.showinfo("Find Previous", f"No occurrences of '{search_string}' found before the cursor position.")
-
+            messagebox.showinfo("Notepad", f"Cannot find '{search_str}'")
 def replace():
     # Function to handle the replace operation
     
@@ -440,6 +433,7 @@ def goto():
     ttk.Label(goto_window, text="Line Number:").grid(row=0, column=0, padx=5, pady=5)
     line_number_entry = ttk.Entry(goto_window)
     line_number_entry.grid(row=0, column=1, padx=5, pady=5)
+    line_number_entry.bind('<Return>', lambda event: goto_line())
 
     # Function to navigate to the specified line
     def goto_line():
@@ -453,12 +447,13 @@ def goto():
                 TextArea.see("insert")
             else:
                 messagebox.showerror("Error", "Invalid line number")
+            goto_window.destroy()
         except ValueError:
             messagebox.showerror("Error", "Please enter a valid line number")
-
+        goto_window.destroy()
+        
     # Button to confirm and navigate to the specified line
     ttk.Button(goto_window, text="Go To", command=goto_line).grid(row=1, column=0, columnspan=2, padx=5, pady=5)
-
 
 def selectall():
     TextArea.tag_add(SEL, "1.0", END)
@@ -476,7 +471,9 @@ def viewhelp():
 def sendfb():
     def submit_feedback():
         feedback = feedback_entry.get()
+        
         messagebox.showinfo("Feedback", f"Thank you for your feedback:\n{feedback}")
+        root.destroy()
 
     # Create the main window
     root = tk.Tk()
@@ -485,8 +482,9 @@ def sendfb():
     # Create a label and entry field for feedback
     feedback_label = tk.Label(root, text="Please provide your feedback:")
     feedback_label.pack()
-    feedback_entry = tk.Entry(root, width=50, height=50)
+    feedback_entry = tk.Entry(root, width=50, relief='groove')
     feedback_entry.pack()
+    feedback_entry.bind('<Return>', lambda event: submit_feedback())
 
     # Create a button to submit feedback
     submit_button = tk.Button(root, text="Submit", command=submit_feedback)
@@ -545,7 +543,7 @@ root.bind_all("<Control-o>", lambda event: open1())
 root.bind_all("<Control-s>", lambda event: save())
 root.bind_all("<Control-S>", lambda event: saveas())
 root.bind_all("<Control-p>", lambda event: print())
-root.bind_all("<Control-z>", lambda event: undo())
+root.bind_all("<Control-z>", lambda event: undo)
 root.bind_all("<BackSpace>", lambda event: delete())
 root.bind_all("<Control-e>", lambda event: search_google(TextArea.selection_get()))
 root.bind_all("<Control-f>", lambda event: find_text())
@@ -588,6 +586,9 @@ scrollbar.pack(side=RIGHT, fill=Y)
 TextArea = Text(root, yscrollcommand=scrollbar.set)
 TextArea.pack(fill=BOTH, expand=True)
 scrollbar.config(command=TextArea.yview)
+# Enable undo/redo functionality
+TextArea.config(undo=True)
+
 #  # Create status bar
 # status_bar = tk.Label(root, text="Ln 1, Col 1", bd=1, relief=tk.SUNKEN, anchor=tk.W)
 # status_bar.pack(side=tk.BOTTOM, fill=tk.X)
